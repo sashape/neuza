@@ -11,5 +11,6 @@ func main() {
 }
 
 func hello(c *fiber.Ctx) {
-	c.Send("Hello world 5")
+	c.Send("Hello world 6")
+	// hi
 }
