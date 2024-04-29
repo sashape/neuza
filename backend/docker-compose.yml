@@ -1,0 +1,14 @@
+name: neuza
+services:
+  backend:
+    image: cosmtrek/air
+    container_name: neuza-backend
+    hostname: neuza-backend
+    build:
+      context: .
+      dockerfile: Dockerfile
+    working_dir: /app
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app

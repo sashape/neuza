@@ -1,4 +1,5 @@
 .vscode
 .idea
 .env
-database/
+database/*
+!database/docker-compose.yml
