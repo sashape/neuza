@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/gofiber/fiber"
+	"github.com/gofiber/fiber/v2"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -16,7 +16,7 @@ var db *gorm.DB
 
 func setupDatabase() {
 	// Подключение к базе данных PostgreSQL
-	dsn := "host=neuza-database user=user password=password1234 dbname=user port=5432 sslmode=disable"
+	dsn := "host=database user=user password=password1234 dbname=user port=5432 sslmode=disable"
 	database, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
 		panic("Не удалось подключиться к базе данных")
@@ -35,23 +35,48 @@ func main() {
 
 	setupDatabase()
 
+	article := Article{
+		Title:   "Introduction to GORM",
+		Content: "GORM is a fantastic ORM library for Go!",
+	}
+
+	// Сохранение статьи в базу данных
+	db.Create(&article)
+
 	app.Get("/articles", getAllArticles)
 	app.Get("/articles/:id", getArticle)
 	app.Post("/articles", createArticle)
 	app.Put("/articles/:id", updateArticle)
 	app.Delete("/articles/:id", deleteArticle)
 
-	app.Listen(8000)
+	app.Listen(":8000")
 }
 
-func homepage(c *fiber.Ctx) {
-	c.Send("NEUZA API")
+func homepage(c *fiber.Ctx) error {
+	return c.Send([]byte("NEUZA API"))
 	// hi
 }
 func getAllArticles(c *fiber.Ctx) error {
 	var articles []Article
-	db.Find(&articles)
-	return c.JSON(articles)
+	result := db.Find(&articles)
+
+	// 2. Проверить на ошибки
+	if result.Error != nil {
+		// 2.1 Обработать ошибку
+		switch err := result.Error; err {
+		case gorm.ErrRecordNotFound:
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+				"message": "Не найдено статей",
+			})
+		default:
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"message": "Ошибка на сервере",
+			})
+		}
+	}
+
+	// 3. Вернуть статьи в JSON-формате
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{"answer": articles})
 }
 
 func getArticle(c *fiber.Ctx) error {
@@ -70,7 +95,7 @@ func createArticle(c *fiber.Ctx) error {
 	article := new(Article)
 	if err := c.BodyParser(article); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"message": "Ошибка валидации данных",
+			"message": "Ошибка валидации данных: ",
 		})
 	}
 	db.Create(&article)
