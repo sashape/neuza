@@ -1,4 +1,4 @@
-module github.com/firebase007/go-rest-api-with-fiber
+module neuza/backend
 
 go 1.22.2
 
