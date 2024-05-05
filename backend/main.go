@@ -1,8 +1,9 @@
 package main
 
 import (
-	"github.com/gofiber/fiber/v2"
 	"neuza/backend/routes/articles"
+
+	"github.com/gofiber/fiber/v2"
 )
 
 func main() {

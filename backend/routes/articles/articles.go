@@ -1,5 +1,8 @@
 package articles
+
 import (
+	"neuza/backend/responses"
+
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -12,6 +15,7 @@ type Article struct {
 	Title   string `json:"title"`
 	Content string `json:"content"`
 }
+
 func setupDatabase() {
 	dsn := "host=database user=user password=password1234 dbname=user port=5432 sslmode=disable"
 	database, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
@@ -25,11 +29,12 @@ func setupDatabase() {
 }
 
 func SetupArticleRoutes(app *fiber.App) {
-    app.Get("/articles", getAllArticles)
-    app.Get("/articles/:id", getArticle)
-    app.Post("/articles", createArticle)
-    app.Put("/articles/:id", updateArticle)
-    app.Delete("/articles/:id", deleteArticle)
+	setupDatabase()
+	app.Get("/articles", getAllArticles)
+	app.Get("/articles/:id", getArticle)
+	app.Post("/articles", createArticle)
+	app.Put("/articles/:id", updateArticle)
+	app.Delete("/articles/:id", deleteArticle)
 }
 
 func getAllArticles(c *fiber.Ctx) error {
@@ -39,17 +44,13 @@ func getAllArticles(c *fiber.Ctx) error {
 	if result.Error != nil {
 		switch err := result.Error; err {
 		case gorm.ErrRecordNotFound:
-			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-				"message": "Articles not found",
-			})
+			return responses.NotFound(c, "Articles not found")
 		default:
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"message": "Server error",
-			})
+			return responses.InternalServerError(c, "Server error")
 		}
 	}
 
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{"answer": articles})
+	return responses.OK(c, fiber.Map{"articles": articles})
 }
 
 func getArticle(c *fiber.Ctx) error {
@@ -67,9 +68,7 @@ func getArticle(c *fiber.Ctx) error {
 func createArticle(c *fiber.Ctx) error {
 	article := new(Article)
 	if err := c.BodyParser(article); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"message": "Data validation error",
-		})
+		return responses.BadRequest(c, "Data validation error")
 	}
 	db.Create(&article)
 	return c.JSON(article)
@@ -80,18 +79,15 @@ func updateArticle(c *fiber.Ctx) error {
 	var article Article
 	db.First(&article, id)
 	if article.ID == 0 {
-		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-			"message": "Article not found",
-		})
+		return responses.NotFound(c, "Article not found")
 	}
 	updatedArticle := new(Article)
 	if err := c.BodyParser(updatedArticle); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"message": "Data validation error",
-		})
+		return responses.BadRequest(c, "Data validation error")
 	}
 	db.Model(&article).Updates(updatedArticle)
-	return c.JSON(article)
+
+	return responses.OK(c, article)
 }
 
 func deleteArticle(c *fiber.Ctx) error {
@@ -99,12 +95,8 @@ func deleteArticle(c *fiber.Ctx) error {
 	var article Article
 	db.First(&article, id)
 	if article.ID == 0 {
-		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-			"message": "Article not found",
-		})
+		return responses.NotFound(c, "Article not found")
 	}
 	db.Delete(&article)
-	return c.Status(fiber.StatusNoContent).JSON(fiber.Map{
-		"message": "Article deleted",
-	})
+	return responses.OK(c, "Article deleted")
 }
