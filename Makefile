@@ -1,6 +1,6 @@
 restart: backend-restart frontend-restart database-restart
 rebuild: delete backend-rebuild frontend-rebuild database-rebuild
-up: backend-up frontend-up database-up 
+up: backend-up frontend-up database-up
 down: backend-down frontend-down database-down
 delete:
 	docker-compose -f ./database/docker-compose.yml down --rmi all
@@ -30,7 +30,6 @@ frontend-build:
 	docker-compose -f ./frontend/docker-compose.yml build
 
 database-restart: database-down database-up
-database-rebuild: database-down database-build database-up
 database-up:
 	docker-compose -f ./database/docker-compose.yml up -d
 database-down:
