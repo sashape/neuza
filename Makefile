@@ -1,5 +1,5 @@
 restart: backend-restart frontend-restart database-restart
-rebuild: delete backend-rebuild frontend-rebuild database-rebuild
+rebuild: delete database-rebuild backend-rebuild frontend-rebuild
 up: backend-up frontend-up database-up
 down: backend-down frontend-down database-down
 delete:
