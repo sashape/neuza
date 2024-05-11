@@ -1,10 +1,10 @@
-package articles
+package routes
 
 import (
+	"neuza/backend/database"
 	"neuza/backend/responses"
 
 	"github.com/gofiber/fiber/v2"
-	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
@@ -16,20 +16,9 @@ type Article struct {
 	Content string `json:"content"`
 }
 
-func setupDatabase() {
-	dsn := "host=database user=user password=password1234 dbname=user port=5432 sslmode=disable"
-	database, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
-	if err != nil {
-		panic("Не удалось подключиться к базе данных")
-	}
-
-	database.AutoMigrate(&Article{})
-
-	db = database
-}
-
-func SetupArticleRoutes(app *fiber.App) {
-	setupDatabase()
+func SetupArticleRoutes(app *fiber.App, database *database.Database) {
+	db = database.DB
+	db.AutoMigrate(&Article{})
 	app.Get("/articles", getAllArticles)
 	app.Get("/articles/:id", getArticle)
 	app.Post("/articles", createArticle)
@@ -68,7 +57,7 @@ func getArticle(c *fiber.Ctx) error {
 func createArticle(c *fiber.Ctx) error {
 	article := new(Article)
 	if err := c.BodyParser(article); err != nil {
-		return responses.BadRequest(c, "Data validation error")
+		return responses.BadRequest(c, "Data validation error " + err.Error())
 	}
 	db.Create(&article)
 	return c.JSON(article)
