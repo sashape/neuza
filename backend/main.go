@@ -1,10 +1,14 @@
 package main
 
 import (
-	"neuza/backend/routes/articles"
+	"neuza/backend/routes"
 	"neuza/backend/database"
 
 	"github.com/gofiber/fiber/v2"
+)
+
+const (
+	Articles routes.Route = "articles"
 )
 
 func main() {
@@ -15,8 +19,8 @@ func main() {
 	}
 	app.Get("/", homepage)
 
-	routes.SetupArticleRoutes(app, database)
-
+	// routes.SetupArticleRoutes(app, database)
+	routes.SetupRoutes(app, database, Articles)
 	app.Listen(":8000")
 }
 
